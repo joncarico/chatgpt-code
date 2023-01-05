@@ -34,7 +34,7 @@
         const videoThumbnailUrl = videoInfo.snippet.thumbnails.medium.url;
         const videoDuration = videoInfo.contentDetails.duration;
         const videoDescription = videoInfo.snippet.description;
-        let captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}`);
+        let captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}&type=ASR}`);
         let captionsData = await captionsResponse.json();
         if (captionsData.items.length === 0) {
           // If there are no captions available, try getting the auto-generated captions
