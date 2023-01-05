@@ -42,7 +42,7 @@
           captionsData = await captionsResponse.json();
         }
         console.log(captionsData);
-        const captions = captionsData.items.map(item => item.snippet.textDisplay);
+        const captions = captionsData.items.map(item => item.content.textDisplay);
 
         // Insert the video info and captions into the page
         const videoInfoAndCaptionsContainer = document.getElementById('video-info-and-captions-container');
