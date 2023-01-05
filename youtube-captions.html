@@ -18,36 +18,59 @@
 
     <!-- JavaScript for fetching the video info and captions -->
     <script>
-      async function fetchVideoInfoAndCaptions() {
-        // Prevent the form from refreshing the page
-        event.preventDefault();
+    const openai = require('openai');
 
-        // Get the video URL or ID from the form input
-        const videoUrlOrId = document.getElementById('video-url-or-id').value;
+    openai.apiKey = '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';
 
-        // Make requests to the YouTube API for the video info and captions
-        const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
-        const videoInfoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoUrlOrId}&part=snippet,contentDetails`);
-        const videoInfoData = await videoInfoResponse.json();
-        const videoInfo = videoInfoData.items[0];
-        const videoTitle = videoInfo.snippet.title;
-        const videoThumbnailUrl = videoInfo.snippet.thumbnails.medium.url;
-        const videoDuration = videoInfo.contentDetails.duration;
-        const videoDescription = videoInfo.snippet.description;
-        const captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}&type=ASR`);
-        const captionsData = await captionsResponse.json();
-        console.log(captionsData);
-        const captions = captionsData.items.map(item => item.content ? item.content.textDisplay : 'No captions available');
+    async function summarizeVideoDescription(description) {
+      const response = await openai.completion.create({
+        engine: 'text-davinci-002',
+        prompt: `Summarize the following text: ${description}`,
+        temperature: 0.7,
+        max_tokens: 100,
+      });
 
-        // Insert the video info and captions into the page
-        const videoInfoAndCaptionsContainer = document.getElementById('video-info-and-captions-container');
-        videoInfoAndCaptionsContainer.innerHTML = `
-          <h2>${videoTitle}</h2>
-          <img src="${videoThumbnailUrl}" alt="Video thumbnail">
-          <p>Duration: ${videoDuration}</p>
-          <p>${videoDescription}</p>
-          <h3>Captions:</h3>
-          <p>${captions.join('</p><p>')}</p>
+      return response.choices[0].text;
+    }
+
+    async function fetchVideoInfoAndCaptions() {
+      // Prevent the form from refreshing the page
+      event.preventDefault();
+
+      // Get the video URL or ID from the form input
+      const videoUrlOrId = document.getElementById('video-url-or-id').value;
+
+      // Make requests to the YouTube API for the video info and captions
+      const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
+      const videoInfoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoUrlOrId}&part=snippet,contentDetails`);
+      const videoInfoData = await videoInfoResponse.json();
+      const videoInfo = videoInfoData.items[0];
+      const videoTitle = videoInfo.snippet.title;
+      const videoThumbnailUrl = videoInfo.snippet.thumbnails.medium.url;
+      const videoDuration = videoInfo.contentDetails.duration;
+      const videoDescription = videoInfo.snippet.description;
+      let captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}&type=ASR}`);
+      let captionsData = await captionsResponse.json();
+      if (captionsData.items.length === 0) {
+        // If there are no captions available, try getting the auto-generated captions
+        captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}&type=ASR`);
+        captionsData = await captionsResponse.json();
+      }
+      console.log(captionsData);
+      const captions = captionsData.items.map(item => item.content ? item.content.textDisplay : 'No captions available');
+
+      // Summarize the video description using OpenAI's GPT-3
+      const summary = await summarizeVideoDescription(videoDescription);
+
+      // Insert the video info, captions, and summary into the page
+      const videoInfoAndCaptionsContainer = document.getElementById('video-info-and-captions-container');
+      videoInfoAndCaptionsContainer.innerHTML = `
+        <h2>${videoTitle}</h2>
+        <img src="${videoThumbnailUrl}" alt="Video thumbnail">
+        <p>Duration: ${videoDuration}</p>
+        <p>${videoDescription}</p>
+        <h3>Captions:</h3>
+        <p>${captions.join('</p><p>')}</p>
         `;
       }
     </script>
