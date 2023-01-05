@@ -1,70 +1,55 @@
 <!DOCTYPE html>
 <html>
-<head>
-  <title>YouTube Video Input</title>
-  <meta http-equiv="Permissions-Policy" content="interest-cohort=Ax59KSqQ5i0zTepB+4z6SZby9Pbmy5az+uGneED4q+gDLSQ7vfNAP/48bFLnEgpQ6JEqHDZFmeBgrWeHFtxg5gMAAACLeyJvcmlnaW4iOiJodHRwczovL2pvbmNhcmljby5naXRodWIuaW86NDQzIiwiZmVhdHVyZSI6IlBlcm1pc3Npb25zUG9saWN5VW5sb2FkIiwiZXhwaXJ5IjoxNjc4MjMzNTk5LCJpc1N1YmRvbWFpbiI6dHJ1ZSwiaXNUaGlyZFBhcnR5Ijp0cnVlfQ==">
-</head>
-<body>
-  <span>YouTube Captions</span>
-  <form>
-    <label for="video-url-input">Enter a YouTube video URL or ID:</label><br>
-    <input type="text" id="video-url-input" name="video-url"><br>
-    <input type="submit" value="Submit" onclick="getVideoInfo()">
-  </form>
-  <div id="video-info"></div>
-  <div id="video-captions"></div>
+  <head>
+    <title>YouTube Video Info and Caption Fetcher</title>
+  </head>
+  <body>
+    <h1>YouTube Video Info and Caption Fetcher 6</h1>
 
-  <script>
-    function getVideoInfo() {
-      // Get the video URL or ID from the input field
-      var videoUrlOrId = document.getElementById("video-url-input").value;
+    <!-- Form for submitting a YouTube video URL or ID -->
+    <form onsubmit="fetchVideoInfoAndCaptions()">
+      <label for="video-url-or-id">YouTube Video URL or ID:</label><br>
+      <input type="text" id="video-url-or-id" name="video-url-or-id"><br>
+      <input type="submit" value="Submit">
+    </form>
 
-      // Make a request to the YouTube API to get the video information
-      var xhr = new XMLHttpRequest();
-      xhr.open("GET", "https://www.googleapis.com/youtube/v3/videos?part=snippet,contentDetails&id=" + videoUrlOrId + "&key=YOUR_API_KEY");
-      xhr.onreadystatechange = function() {
-        if (xhr.readyState === 4 && xhr.status === 200) {
-          // Parse the response
-          var response = JSON.parse(xhr.responseText);
-          var video = response.items[0];
+    <!-- Div for displaying the video info and captions -->
+    <div id="video-info-and-captions-container"></div>
 
-          // Get the video title, length, channel, and description
-          var videoTitle = video.snippet.title;
-          var videoLength = video.contentDetails.duration;
-          var videoChannel = video.snippet.channelTitle;
-          var videoThumbnail = video.snippet.thumbnails.default.url;
-          var videoDescription = video.snippet.description;
+    <!-- JavaScript for fetching the video info and captions -->
+    <script>
+      async function fetchVideoInfoAndCaptions() {
+        // Prevent the form from refreshing the page
+        event.preventDefault();
 
-          // Insert the video information into the page
-          var videoInfoDiv = document.getElementById("video-info");
-          videoInfoDiv.innerHTML =
-            "<img src='" + videoThumbnail + "'><br>" +
-            "<a href='https://www.youtube.com/watch?v=" + videoUrlOrId + "'>" + videoTitle + "</a><br>" +
-            "Length: " + videoLength + "<br>" +
-            "Channel: <a href='https://www.youtube.com/channel/" + video.snippet.channelId + "'>" + videoChannel + "</a><br>" +
-            videoDescription;
-        }
+        // Get the video URL or ID from the form input
+        const videoUrlOrId = document.getElementById('video-url-or-id').value;
+
+        // Make requests to the YouTube API for the video info and captions
+        const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
+        const videoInfoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoUrlOrId}&part=snippet,contentDetails`);
+        const videoInfoData = await videoInfoResponse.json();
+        const videoInfo = videoInfoData.items[0];
+        const videoTitle = videoInfo.snippet.title;
+        const videoThumbnailUrl = videoInfo.snippet.thumbnails.medium.url;
+        const videoDuration = videoInfo.contentDetails.duration;
+        const videoDescription = videoInfo.snippet.description;
+        const captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}&type=ASR`);
+        const captionsData = await captionsResponse.json();
+        console.log(captionsData);
+        const captions = captionsData.items.map(item => item.content ? item.content.textDisplay : 'No captions available');
+
+        // Insert the video info and captions into the page
+        const videoInfoAndCaptionsContainer = document.getElementById('video-info-and-captions-container');
+        videoInfoAndCaptionsContainer.innerHTML = `
+          <h2>${videoTitle}</h2>
+          <img src="${videoThumbnailUrl}" alt="Video thumbnail">
+          <p>Duration: ${videoDuration}</p>
+          <p>${videoDescription}</p>
+          <h3>Captions:</h3>
+          <p>${captions.join('</p><p>')}</p>
+        `;
       }
-      xhr.send();
-
-      // Make a request to the YouTube API to get the video's auto-generated captions
-      var xhr2 = new XMLHttpRequest();
-      xhr2.open("GET", "https://www.googleapis.com/youtube/v3/captions/" + videoUrlOrId + "?key=YOUR_API_KEY");
-      xhr2.onreadystatechange = function() {
-        if (xhr2.readyState === 4 && xhr2.status === 200) {
-          // Parse the response
-          var response = JSON.parse(xhr2.responseText);
-          var captions = response.items;
-
-          // Insert the video info, captions, and summary into the page
-          const videoCaptionsContainer = document.getElementById('video-captions');
-          videoCaptionsContainer.innerHTML = `
-            <h3>Captions:</h3>
-            <p>${captions.join('</p><p>')}</p>
-            `;
-        };
-      };
-    }
-  </script>
-</body>
+    </script>
+  </body>
 </html>
