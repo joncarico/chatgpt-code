@@ -26,7 +26,7 @@
         const videoUrlOrId = document.getElementById('video-url-or-id').value;
 
         // Make requests to the YouTube API for the video info and captions
-        const apiKey = 'YOUR_API_KEY_HERE';
+        const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
         const videoInfoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoUrlOrId}&part=snippet,contentDetails`);
         const videoInfoData = await videoInfoResponse.json();
         const videoInfo = videoInfoData.items[0];
