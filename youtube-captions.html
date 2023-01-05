@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <title>YouTube Video Caption Fetcher</title>
+  </head>
+  <body>
+    <h1>YouTube Video Caption Fetcher</h1>
+
+    <!-- Form for submitting a YouTube video URL or ID -->
+    <form onsubmit="fetchCaptions()">
+      <label for="video-url-or-id">YouTube Video URL or ID:</label><br>
+      <input type="text" id="video-url-or-id" name="video-url-or-id"><br>
+      <input type="submit" value="Submit">
+    </form>
+
+    <!-- Div for displaying the captions -->
+    <div id="captions-container"></div>
+
+    <!-- JavaScript for fetching the captions -->
+    <script>
+      async function fetchCaptions() {
+        // Prevent the form from refreshing the page
+        event.preventDefault();
+
+        // Get the video URL or ID from the form input
+        const videoUrlOrId = document.getElementById('video-url-or-id').value;
+
+        // Make a request to the YouTube API for the captions
+        const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
+        const response = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}`);
+        const data = await response.json();
+
+        // Get the captions from the API response
+        const captions = data.items.map(item => item.snippet.textDisplay);
+
+        // Insert the captions into the page
+        const captionsContainer = document.getElementById('captions-container');
+        captionsContainer.innerHTML = `<p>${captions.join('</p><p>')}</p>`;
+      }
+    </script>
+  </body>
+</html>
