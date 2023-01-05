@@ -36,6 +36,7 @@
         const videoDescription = videoInfo.snippet.description;
         const captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}`);
         const captionsData = await captionsResponse.json();
+        console.log(captionsData);
         const captions = captionsData.items.map(item => item.snippet.textDisplay);
 
         // Insert the video info and captions into the page
