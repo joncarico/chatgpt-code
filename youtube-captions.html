@@ -1,41 +1,53 @@
 <!DOCTYPE html>
 <html>
   <head>
-    <title>YouTube Video Caption Fetcher</title>
+    <title>YouTube Video Info and Caption Fetcher</title>
   </head>
   <body>
-    <h1>YouTube Video Caption Fetcher</h1>
+    <h1>YouTube Video Info and Caption Fetcher</h1>
 
     <!-- Form for submitting a YouTube video URL or ID -->
-    <form onsubmit="fetchCaptions()">
+    <form onsubmit="fetchVideoInfoAndCaptions()">
       <label for="video-url-or-id">YouTube Video URL or ID:</label><br>
       <input type="text" id="video-url-or-id" name="video-url-or-id"><br>
       <input type="submit" value="Submit">
     </form>
 
-    <!-- Div for displaying the captions -->
-    <div id="captions-container"></div>
+    <!-- Div for displaying the video info and captions -->
+    <div id="video-info-and-captions-container"></div>
 
-    <!-- JavaScript for fetching the captions -->
+    <!-- JavaScript for fetching the video info and captions -->
     <script>
-      async function fetchCaptions() {
+      async function fetchVideoInfoAndCaptions() {
         // Prevent the form from refreshing the page
         event.preventDefault();
 
         // Get the video URL or ID from the form input
         const videoUrlOrId = document.getElementById('video-url-or-id').value;
 
-        // Make a request to the YouTube API for the captions
-        const apiKey = 'AIzaSyDdFHzCt8FvQgqfPcx374laW9vqPNdNynU';
-        const response = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}`);
-        const data = await response.json();
+        // Make requests to the YouTube API for the video info and captions
+        const apiKey = 'YOUR_API_KEY_HERE';
+        const videoInfoResponse = await fetch(`https://www.googleapis.com/youtube/v3/videos?key=${apiKey}&id=${videoUrlOrId}&part=snippet,contentDetails`);
+        const videoInfoData = await videoInfoResponse.json();
+        const videoInfo = videoInfoData.items[0];
+        const videoTitle = videoInfo.snippet.title;
+        const videoThumbnailUrl = videoInfo.snippet.thumbnails.medium.url;
+        const videoDuration = videoInfo.contentDetails.duration;
+        const videoDescription = videoInfo.snippet.description;
+        const captionsResponse = await fetch(`https://www.googleapis.com/youtube/v3/captions?key=${apiKey}&videoId=${videoUrlOrId}`);
+        const captionsData = await captionsResponse.json();
+        const captions = captionsData.items.map(item => item.snippet.textDisplay);
 
-        // Get the captions from the API response
-        const captions = data.items.map(item => item.snippet.textDisplay);
-
-        // Insert the captions into the page
-        const captionsContainer = document.getElementById('captions-container');
-        captionsContainer.innerHTML = `<p>${captions.join('</p><p>')}</p>`;
+        // Insert the video info and captions into the page
+        const videoInfoAndCaptionsContainer = document.getElementById('video-info-and-captions-container');
+        videoInfoAndCaptionsContainer.innerHTML = `
+          <h2>${videoTitle}</h2>
+          <img src="${videoThumbnailUrl}" alt="Video thumbnail">
+          <p>Duration: ${videoDuration}</p>
+          <p>${videoDescription}</p>
+          <h3>Captions:</h3>
+          <p>${captions.join('</p><p>')}</p>
+        `;
       }
     </script>
   </body>
